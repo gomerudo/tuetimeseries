@@ -103,7 +103,7 @@ Exponential Smoothing fitted                            |
 
 **Analysis**
 
-The `alpha` parameter indicates that we are not giving too much importance to the recent past, but giving a similar importance to all the series (since at each step we only decrease the value by less than 1%). The coefficient on the other hand is bigger but still not that significant if we consider that the range of y-axis is `[-20, 20]`. I would expect a really bad prediction, close to 0.
+The `alpha` parameter indicates that we are not giving too much importance to the recent past, but giving a similar importance to all the series (since at each step we only decrease the value by less than 1%). Indeed, we are close to a naive forecasting, where the first value is dominant throughout the series. The coefficient, on the other hand, is bigger but still not that significant if we consider that the range of y-axis is `[-20, 20]`. I would expect a really bad prediction, close to 0.
 
 
 ### Verify the model on the basis of the residuals, their (partial) autocorrelations and Goodness-of-Fit measures such as RMSE, MAE and MAPE.
@@ -112,6 +112,10 @@ The `alpha` parameter indicates that we are not giving too much importance to th
 
 The first thing to evaluate is the goodness-of-fit, since it does not deppend on predictions. I decide to evaluate based on RMSE since it is unsensitive to changes in sign for the fitted and original values. 
 
+We observe that the RMSE is somehow low, since we are working in the range `[-20, 20]` and this measure is averaged and squared. Indeed, this means that our average error is more or less one side of the range. 
+
+This is not a clear indicator of the performance of the model. So we proceed to forecast and evaluate normality of the residuals and partial autocorrelations.
+
 
 ```
 with(data.ses, accuracy(fitted, x))
@@ -119,10 +123,6 @@ with(data.ses, accuracy(fitted, x))
                  ME     RMSE      MAE      MPE     MAPE       ACF1 Theil's U
 Test set -0.3495645 4.722208 3.067691 104.4842 108.4282 -0.5792749  1.065748
 ```
-
-With this, we observe that the RMSE is somehow low, since we are working in the range `[-20, 20]` and this measure is averaged and squared. Indeed, this means that our average error is more or less one side of the range. 
-
-This is not a clear indicator of the performance of the model. So we proceed to forecast and evaluate normality of the residuals and partial autocorrelations.
 
 To verify normality of the residuals, we first forecast 10 values:
 
@@ -133,7 +133,6 @@ data.ses.fore <- forecast(data.ses, h = 10)
 Forecast                            |
 :----------------------------------------------------:|
 ![](img/2_1_b_1.png "Forecast") |
-
 
 After that, we evaluate normality:
 
@@ -179,7 +178,7 @@ X-squared = 115.88, df = 12, p-value < 2.2e-16
 
 ```
 
-The p-value is lower than 0.5, rejecting the null that autocorrelations are 0. Hence, they are significant and this is not an adequate model.
+The p-value is lower than 0.5, rejecting the null that the residuals are independent. Consequently, correlation can be assumed.
 
 ## c) 
 
@@ -187,7 +186,7 @@ The p-value is lower than 0.5, rejecting the null that autocorrelations are 0. H
 
 **Analysis**
 
-Since we have corrected the seasonality, we may like trying to fit a Holt model, i.e. only `gamma` parameter set to false (no seasonality). This model contain a equation for trend.
+Since we have corrected the seasonality, we may like trying to fit a Holt model, i.e. only `gamma=false` (no seasonality). This model contain a equation for trend.
 
 ### Fit the model by estimating its parameters and give an interpretation for the parametervalues obtained. 
 
@@ -214,12 +213,9 @@ Exponential Smoothing fitted                            |
 :----------------------------------------------------:|
 ![](img/2_1_c_0.png "Corrected") |
 
-
 **Analysis**
 
-The parameters in this case are telling that the importance in the level for the recen past is somehow low. The beta value tells me that the recent trend is taking more importance in the forecasting, but still not really dominant. 
-
-With respect to the coefficients, My last level is negative since, as we can see in the plot, my predication at the last point in time is going down. The trend coefficient is, on the other hand, positive, moving the value a bit to the top with respect with old predictions. This model seems more accurate, but is still showing errors that can be confirmed next.
+This time we observe alpha (affecting directly the level) to be considerable high (70%). This means that the recent past is important for the forecasting. On the other hand, the beta parameter is somehow low, meaning that for modeling the trend, carrying the old trend is more important than the change at each moment in time (see equation). 
 
 ### Verify the model on the basis of the residuals, their (partial) autocorrelations and Goodness-of-Fit measures such as RMSE, MAE and MAPE. 
 
@@ -232,11 +228,9 @@ with(data.ses, accuracy(fitted, x))
 Test set -0.3051299 2.900247 1.936155 -52.58149 152.4652 0.01168202  1.039962
 ```
 
-In contrast to the previous model, the error seems higher since the model is not completely aligning the series though it behaves more "random".
+In contrast to the previous model, the error seems lower which expected when we look at the plot. In fact, the series look very similar. We proceed to analyse other metrics, specifically in the residuals of the forecasting.
 
-This is not a clear indicator of the performance of the model. So we proceed to forecast and evaluate normality of the residuals and partial autocorrelations.
-
-To verify normality of the residuals, we first forecast 10 values:
+To verify normality of the residuals, we first forecast 10 values.
 
 ```
 data.ses.fore <- forecast(data.ses, h = 10)
@@ -246,8 +240,9 @@ Forecast                            |
 :----------------------------------------------------:|
 ![](img/2_1_c_1.png "Forecast") |
 
+It looks that the forecasting did not extrapolate that well, even if the fitted values were close to the true series. 
 
-After that, we evaluate normality:
+This can be explained (somehow) when we observe at the residuales, for which we reject normality as shown in the test below (p-value << 0.05).
 
 ```
 > shapiro.test(data.ses.fore$residuals)
@@ -258,7 +253,7 @@ data:  data.ses.fore$residuals
 W = 0.88348, p-value = 1.19e-09
 ```
 
-We reject normality since p-value < 0.05 (we assume significance of 5%). We need to be careful since this test is sensitive to ties which was not verified for our dataset. By looking at the residuals we can observe this in detail.
+While observing the qqplot, we confirm that normality is not present.
 
 ```
 qqnorm(unclass(data.ses.fore$residuals))
@@ -341,10 +336,11 @@ Exponential Smoothing fitted                            |
 
 **Analysis**
 
-This time we obtained an alpha parameter of 0, meaning we give equal weight to each level, regardless the time. On the other hand, the gamma parameter seems to be low meaning that the seasonality will be close to a simple average since all the lags will be similarly important.
+This time we obtained an alpha parameter of 0, meaning that the last observation is not taken into account, but the old past is. The gamma value seems to contain the actual forecasting. We observe a value of 10%, meaning that we shift the precition depending on the position. This is somehow clear in the plot of the fitted values where a clear repeated pattern is observed.
 
 ### Verify the model on the basis of the residuals, their (partial) autocorrelations and Goodness-of-Fit measures such as RMSE, MAE and MAPE. 
 
+With respect to the accuracy, we observe that the error is a bit high but still better than the first approach (RMSE).
 
 ```
 with(data.ses, accuracy(fitted, x))
@@ -353,11 +349,7 @@ with(data.ses, accuracy(fitted, x))
 Test set 0.01054447 3.43316 2.120443 241.7872 311.8757 -0.5295721 0.7939439
 ```
 
-The RMSE behaves similarly to the previous example.Indeed, the fitted values look pretty close to the last model. 
-
-This is not a clear indicator of the performance of the model. So we proceed to forecast and evaluate normality of the residuals and partial autocorrelations.
-
-To verify normality of the residuals, we first forecast 10 values:
+Next step is to verify normality of the residuals in the forecast. We observe a better forecasting, with the pattern we observed before.
 
 ```
 data.ses.fore <- forecast(data.ses, h = 10)
@@ -368,8 +360,7 @@ Forecast                            |
 ![](img/2_1_d_1.png "Forecast") |
 
 
-After that, we evaluate normality:
-
+To evaluate normality we use the next test. We reject normality because of the p-value < 0.05.
 ```
 > shapiro.test(data.ses.fore$residuals)
 
@@ -379,7 +370,7 @@ data:  data.ses.fore$residuals
 W = 0.81821, p-value = 1.484e-12
 ```
 
-We reject normality since p-value < 0.05 (we assume significance of 5%). We need to be careful since this test is sensitive to ties which was not verified for our dataset. By looking at the residuals we can observe this in detail.
+This can be confirmed with the qqplot.
 
 ```
 qqnorm(unclass(data.ses.fore$residuals))
@@ -411,7 +402,7 @@ data:  data.ses.fore$residuals
 X-squared = 49.374, df = 12, p-value = 1.799e-06
 ```
 
-The independence of the residuals is rejected. This is clear in the ACF and PACF where we can still observe some seasonality and residuals of trendy behaviour.
+The independence of the residuals is rejected. This is clear in the ACF and PACF where we can still observe significant values.
 
 ## e) 
 
@@ -419,9 +410,8 @@ The independence of the residuals is rejected. This is clear in the ACF and PACF
 
 **Analysis**
 
-Now we want to use a model considering both, trend and seasonality, this is, a full HoltWinters model.
+Now we want to use a model considering both, trend and seasonality, this is, a full HoltWinters model. We fit this model as shown next.
 
-Now we fit a model with all the 
 ### Fit the model by estimating its parameters and give an interpretation for the parametervalues obtained. 
 
 ```
@@ -461,7 +451,7 @@ Exponential Smoothing fitted                            |
 
 **Analysis**
 
-The level is not getting higher importance (above 50%), meaning that recent past is more important. The trend is not getting importance at all and can be deprecated. The seasonality seems to play an important role (relatively speaking). It seems that seasonality and level are the key elements of the series since the trend grows really slow.
+We see that the trend is not considered important and on contrarely, the level and the seasonality take the most of the weight in the equations. It is expected with the results observed in the other exercises, where seasonality modeled pretty well the series on its own. Apparently, the recent past is important for the level but for the seasonality we give more importance to the carried seasonality.
 
 ### Verify the model on the basis of the residuals, their (partial) autocorrelations and Goodness-of-Fit measures such as RMSE, MAE and MAPE. 
 

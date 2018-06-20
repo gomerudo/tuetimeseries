@@ -51,10 +51,10 @@ data.ses3 <- HoltWinters(data.corrected3, beta = FALSE, gamma = FALSE)
 # Remove nothing
 data.ses4 <- HoltWinters(data.corrected4)
 
-data.corrected <- data.corrected3
+data.corrected <- data.corrected4
 tsdisplay(data.corrected)
 
-data.ses <- data.ses3
+data.ses <- data.ses4
 plot(data.ses)
 
 # check accuracy on the fitted values (NOT THE FORECASTED)

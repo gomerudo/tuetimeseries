@@ -212,7 +212,7 @@ b -0.4481598
 
 Exponential Smoothing fitted                            |
 :----------------------------------------------------:|
-![](img/2_1_c_0.png "Corrected") |
+![](img/2_2_c_0.png "Corrected") |
 
 
 **Analysis**
@@ -244,7 +244,7 @@ data.ses.fore <- forecast(data.ses, h = 10)
 
 Forecast                            |
 :----------------------------------------------------:|
-![](img/2_1_c_1.png "Forecast") |
+![](img/2_2_c_1.png "Forecast") |
 
 
 After that, we evaluate normality:
@@ -267,7 +267,7 @@ qqline(unclass(data.ses.fore$residuals))
 
 Normality                            |
 :----------------------------------------------------:|
-![](img/2_1_c_2.png "Forecast") |
+![](img/2_2_c_2.png "Forecast") |
 
 Finally, remember we look for random residuals, we verify if indeed there is randomness in their ACF and PACF.
 
@@ -277,7 +277,7 @@ tsdisplay(data.ses.fore$residuals)
 
 Autocorrelations                            |
 :----------------------------------------------------:|
-![](img/2_1_c_3.png "Forecast") |
+![](img/2_2_c_3.png "Forecast") |
 
 It can be observed that there is significance in some of the autocorrelations, then we perform a formal test:
 

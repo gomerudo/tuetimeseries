@@ -41,12 +41,8 @@ data.corrected3 = diff(data.ts, differences = 1)
 data.corrected3 <- diff(data.corrected3, lag = 12, differences = 1)
 data.corrected3 <- data.corrected3 + abs(min(data.corrected3)) + 1
 
-# Remove nothing
+# 4. Remove nothing
 data.corrected4 <- data.ts
-
-data.corrected <- data.corrected4
-
-tsdisplay(data.corrected)
 
 # Remove only trend
 data.ses1 <- HoltWinters(data.corrected1, beta = FALSE, seasonal = "multiplicative")
@@ -56,6 +52,10 @@ data.ses2 <- HoltWinters(data.corrected2, gamma = FALSE, seasonal = "multiplicat
 data.ses3 <- HoltWinters(data.corrected3, beta = FALSE, gamma = FALSE, seasonal = "multiplicative")
 # Remove nothing
 data.ses4 <- HoltWinters(data.corrected4, seasonal = "multiplicative")
+
+
+data.corrected <- data.corrected4
+tsdisplay(data.corrected)
 
 data.ses <- data.ses4
 plot(data.ses)
