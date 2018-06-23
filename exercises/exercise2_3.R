@@ -22,7 +22,7 @@ data <- select(data, -CO2, -unemployment)
 #data.ts <- ts(data$temp, start = 1953, frequency = 12) # Montly data for recife
 data.ts <- ts(data$laborforce, start = c(1948, 1), frequency = 12) 
 
-#data.ses <- HoltWinters(data.ts, seasonal = "additive")
+# data.ses <- HoltWinters(data.ts, seasonal = "additive")
 data.ses <- ets(data.ts)
 
 plot(data.ses)
